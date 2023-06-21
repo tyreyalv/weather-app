@@ -29,10 +29,10 @@ def get_city_coordinates():
     return data[0]['lat'], data[0]['lon']
 
 def get_current_temperature(lat, lon):
-    weather_api_endpoint = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OPENWEATHERMAP_API_KEY}&units=imperial"
+    weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={OPENWEATHERMAP_API_KEY}&units=imperial"
     response = requests.get(weather_api_endpoint)
     data = response.json()
-    return data['main']['temp']
+    return data['current']['temp']
 
 def send_to_google_chat(message):
     data = {

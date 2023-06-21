@@ -17,7 +17,7 @@ spec:
         imagePullSecrets:
         - name: argo-registry
         env:
-          - name: OPENWEATHERMAP_API_KEY
+          - name: OPENWEATHER_API_KEY
             valueFrom:
               secretKeyRef:
                 name: openweather-api
