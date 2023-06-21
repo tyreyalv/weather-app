@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: CronWorkflow
+metadata:
+  name: weather-check-workflow
+  namespace: argo
+spec:
+  schedule: "*/30 * * * *"
+  concurrencyPolicy: "Replace"
+  startingDeadlineSeconds: 0
+  workflowSpec:
+    entrypoint: main
+    templates:
+    - name: main
+      container:
+        image: registry.tyreyalv.com/jenkins/weather-app:main
+        command: ["python", "/app/temp_check.py"]
+        imagePullSecrets:
+        - name: argo-registry
+        env:
+          - name: OPENWEATHERMAP_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: openweather-api
+                key: OPENWEATHER_API_KEY
+          - name: GOOGLE_CHAT_WEBHOOK
+            valueFrom:
+              secretKeyRef:
+                name: weather-google-api
+                key: GOOGLE_CHAT_WEBHOOK
+          - name: REDIS_HOST
+            valueFrom:
+              secretKeyRef:
+                name: weather-redis
+                key: REDIS_HOST
+          - name: REDIS_PORT
+            value: "6379"

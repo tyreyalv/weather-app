@@ -1,4 +1,7 @@
 venv/
 README.md
 Jenkinsfile
+redis.yaml
+argo-workflow.yaml
+.gitignore
 ```
