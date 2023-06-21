@@ -8,7 +8,7 @@ WORKDIR /app
 ADD . /app
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir requests
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Run weather_notifier.py when the container launches
-CMD ["python", "weather_notifier.py"]
+CMD ["python", "/app/temp_check.py"]

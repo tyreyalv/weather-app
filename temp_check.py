@@ -9,7 +9,7 @@ load_dotenv()
 
 OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY')
 GOOGLE_CHAT_WEBHOOK = os.environ.get('GOOGLE_CHAT_WEBHOOK')
-REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
+REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
 TEMP_THRESHOLD = 75
