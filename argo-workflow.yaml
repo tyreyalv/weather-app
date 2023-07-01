@@ -22,11 +22,11 @@ spec:
               secretKeyRef:
                 name: openweather-api
                 key: OPENWEATHER_API_KEY
-          - name: GOOGLE_CHAT_WEBHOOK
+          - name: DISCORD_WEBHOOK
             valueFrom:
               secretKeyRef:
-                name: weather-google-api
-                key: GOOGLE_CHAT_WEBHOOK
+                name: weather-discord-api
+                key: DISCORD_WEBHOOK
           - name: REDIS_HOST
             valueFrom:
               secretKeyRef:
