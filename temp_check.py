@@ -8,7 +8,7 @@ import redis
 load_dotenv()
 
 OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY')
-GOOGLE_CHAT_WEBHOOK = os.environ.get('GOOGLE_CHAT_WEBHOOK')
+DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK')  # renamed variable
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
@@ -34,11 +34,11 @@ def get_current_temperature(lat, lon):
     data = response.json()
     return data['current']['temp']
 
-def send_to_google_chat(message):
+def send_to_discord(message):  # renamed function
     data = {
-        "text": message
+        "content": message  # changed key to 'content'
     }
-    requests.post(GOOGLE_CHAT_WEBHOOK, json=data)
+    requests.post(DISCORD_WEBHOOK, json=data)  # changed variable to DISCORD_WEBHOOK
 
 def main():
     lat, lon = get_city_coordinates()
@@ -50,10 +50,10 @@ def main():
         state = state.decode()
 
     if temp > TEMP_THRESHOLD and state != 'above':
-        send_to_google_chat(f"Temperature in Fort Collins, CO is now over {TEMP_THRESHOLD} degrees. Current temperature: {temp} degrees.")
+        send_to_discord(f"Temperature in Fort Collins, CO is now over {TEMP_THRESHOLD} degrees. Current temperature: {temp} degrees.")  # changed function call
         redis_db.set(STATE_KEY, 'above')
     elif temp <= TEMP_THRESHOLD and state != 'below':
-        send_to_google_chat(f"Temperature in Fort Collins, CO is now back under {TEMP_THRESHOLD} degrees. Current temperature: {temp} degrees.")
+        send_to_discord(f"Temperature in Fort Collins, CO is now back under {TEMP_THRESHOLD} degrees. Current temperature: {temp} degrees.")  # changed function call
         redis_db.set(STATE_KEY, 'below')
 
 if __name__ == "__main__":
