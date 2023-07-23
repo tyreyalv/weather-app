@@ -12,7 +12,7 @@ DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK')  # renamed variable
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
-TEMP_THRESHOLD = 78
+TEMP_THRESHOLD = 80
 CITY_NAME = "Fort Collins"
 STATE_CODE = "CO"
 COUNTRY_CODE = "US"
