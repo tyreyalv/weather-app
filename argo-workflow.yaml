@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
-  name: weather-check-workflow
+  name: weather-check-workflow-dev
   namespace: argo
 spec:
   schedule: "*/30 * * * *"
@@ -12,16 +12,17 @@ spec:
     templates:
     - name: main
       container:
-        image: registry.tyreyalv.com/jenkins/weather-app:main
+        image: registry.tyreyalv.com/jenkins/weather-app:dev
+        imagePullPolicy: Always
         command: ["python", "/app/temp_check.py"]
         imagePullSecrets:
         - name: argo-registry
         env:
-          - name: OPENWEATHER_API_KEY
+          - name: OPENWEATHERMAP_API_KEY
             valueFrom:
               secretKeyRef:
                 name: openweather-api
-                key: OPENWEATHER_API_KEY
+                key: OPENWEATHERMAP_API_KEY
           - name: DISCORD_WEBHOOK
             valueFrom:
               secretKeyRef:
