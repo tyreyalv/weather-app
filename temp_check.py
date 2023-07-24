@@ -64,6 +64,8 @@ def main():
     if state_low is not None:
         state_low = state_low.decode()
 
+    logging.info(f"Current states from Redis DB: High threshold state: {state_high}, Low threshold state: {state_low}")
+
     if temp > TEMP_THRESHOLD_HIGH and state_high != 'above':
         logging.info(f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees.")
         send_to_discord(f"Temperature in Fort Collins, CO is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees.")
