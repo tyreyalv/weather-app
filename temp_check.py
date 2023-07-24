@@ -17,19 +17,14 @@ CITY_NAME = "Fort Collins"
 STATE_CODE = "CO"
 COUNTRY_CODE = "US"
 STATE_KEY = 'state'
+LATITUDE = 40.589820
+LONGITUDE = -105.066320
 
 redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
-def get_city_coordinates():
-    city_name_encoded = urllib.parse.quote(CITY_NAME)
-    geocoding_api_endpoint = f"http://api.openweathermap.org/geo/1.0/direct?q={city_name_encoded},{STATE_CODE},{COUNTRY_CODE}&limit=1&appid={OPENWEATHERMAP_API_KEY}"
-    response = requests.get(geocoding_api_endpoint)
-    data = response.json()
-    print(f"Response from API: {data}")  
-    return data[0]['lat'], data[0]['lon']
 
-def get_current_temperature(lat, lon):
-    weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={OPENWEATHERMAP_API_KEY}&units=imperial"
+def get_current_temperature():
+    weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={LATITUDE}&lon={LONGITUDE}&appid={OPENWEATHERMAP_API_KEY}&units=imperial"
     response = requests.get(weather_api_endpoint)
     data = response.json()
     return data['current']['temp']
@@ -41,8 +36,7 @@ def send_to_discord(message):  # renamed function
     requests.post(DISCORD_WEBHOOK, json=data)  # changed variable to DISCORD_WEBHOOK
 
 def main():
-    lat, lon = get_city_coordinates()
-    temp = get_current_temperature(lat, lon)
+    temp = get_current_temperature()
 
     # Read the state from Redis
     state = redis_db.get(STATE_KEY)
