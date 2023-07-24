@@ -1,11 +1,17 @@
-# Use an official Python runtime as a parent image
-FROM python:3.9-slim
+# First stage: perform system update & upgrade
+FROM python:3.11-slim-bookworm as build
+WORKDIR /app
+ADD . /app
 
-# Set the working directory in the container to /app
+# Upgrade all packages and clean up
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
+
+# Second stage: build the final image
+FROM python:3.11-slim-bookworm
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-ADD . /app
+# Copy only the necessary files from the first stage
+COPY --from=build /app /app
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
