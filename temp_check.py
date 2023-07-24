@@ -12,11 +12,10 @@ DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK')  # renamed variable
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
-TEMP_THRESHOLD = 80
-CITY_NAME = "Fort Collins"
-STATE_CODE = "CO"
-COUNTRY_CODE = "US"
-STATE_KEY = 'state'
+TEMP_THRESHOLD_HIGH = 80
+TEMP_THRESHOLD_LOW = 78
+STATE_KEY_HIGH = 'state_high'
+STATE_KEY_LOW = 'state_low'
 LATITUDE = 40.589820
 LONGITUDE = -105.066320
 
@@ -39,16 +38,25 @@ def main():
     temp = get_current_temperature()
 
     # Read the state from Redis
-    state = redis_db.get(STATE_KEY)
-    if state is not None:
-        state = state.decode()
+    state_high = redis_db.get(STATE_KEY_HIGH)
+    if state_high is not None:
+        state_high = state_high.decode()
 
-    if temp > TEMP_THRESHOLD and state != 'above':
-        send_to_discord(f"Temperature in Fort Collins, CO is now over {TEMP_THRESHOLD} degrees. Current temperature: {temp} degrees.")  # changed function call
-        redis_db.set(STATE_KEY, 'above')
-    elif temp <= TEMP_THRESHOLD and state != 'below':
-        send_to_discord(f"Temperature in Fort Collins, CO is now back under {TEMP_THRESHOLD} degrees. Current temperature: {temp} degrees.")  # changed function call
-        redis_db.set(STATE_KEY, 'below')
+    state_low = redis_db.get(STATE_KEY_LOW)
+    if state_low is not None:
+        state_low = state_low.decode()
+
+    if temp > TEMP_THRESHOLD_HIGH and state_high != 'above':
+        send_to_discord(f"Temperature in Fort Collins, CO is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees.")
+        redis_db.set(STATE_KEY_HIGH, 'above')
+    elif temp <= TEMP_THRESHOLD_HIGH and state_high != 'below':
+        redis_db.set(STATE_KEY_HIGH, 'below')
+
+    if temp > TEMP_THRESHOLD_LOW and state_low != 'above':
+        redis_db.set(STATE_KEY_LOW, 'above')
+    elif temp <= TEMP_THRESHOLD_LOW and state_low != 'below':
+        send_to_discord(f"Temperature in Fort Collins, CO is now back under {TEMP_THRESHOLD_LOW} degrees. Current temperature: {temp} degrees.")
+        redis_db.set(STATE_KEY_LOW, 'below')
 
 if __name__ == "__main__":
     main()
