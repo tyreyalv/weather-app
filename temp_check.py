@@ -6,7 +6,7 @@ import redis
 
 load_dotenv()
 
-# Configure logging
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY')
@@ -14,8 +14,8 @@ DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK')
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 
-TEMP_THRESHOLD_HIGH = 80
-TEMP_THRESHOLD_LOW = 78
+TEMP_THRESHOLD_HIGH = 78
+TEMP_THRESHOLD_LOW = 80
 STATE_KEY_HIGH = 'state_high'
 STATE_KEY_LOW = 'state_low'
 LATITUDE = 40.589820
@@ -55,7 +55,7 @@ def main():
 
     logging.info(f"Current temperature: {temp} degrees.")
 
-    # Read the state from Redis
+
     state_high = redis_db.get(STATE_KEY_HIGH)
     if state_high is not None:
         state_high = state_high.decode()
