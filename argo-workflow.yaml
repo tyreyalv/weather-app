@@ -4,7 +4,7 @@ metadata:
   name: weather-check-workflow-dev
   namespace: argo
 spec:
-  schedule: "*/30 * * * *"
+  schedule: "*/10 5-20 * * *"
   concurrencyPolicy: "Replace"
   startingDeadlineSeconds: 0
   workflowSpec:

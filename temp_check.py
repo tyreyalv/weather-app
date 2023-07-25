@@ -6,7 +6,7 @@ import redis
 
 load_dotenv()
 
-# Configure logging
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY')
@@ -55,7 +55,7 @@ def main():
 
     logging.info(f"Current temperature: {temp} degrees.")
 
-    # Read the state from Redis
+
     state_high = redis_db.get(STATE_KEY_HIGH)
     if state_high is not None:
         state_high = state_high.decode()
