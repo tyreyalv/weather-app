@@ -8,6 +8,8 @@ spec:
   concurrencyPolicy: "Replace"
   startingDeadlineSeconds: 0
   workflowSpec:
+    imagePullSecrets:
+      - name: argo-registry
     entrypoint: main
     templates:
     - name: main
@@ -21,17 +23,22 @@ spec:
           - name: OPENWEATHERMAP_API_KEY
             valueFrom:
               secretKeyRef:
-                name: openweather-api
+                name: weather-app-secret
                 key: OPENWEATHERMAP_API_KEY
           - name: DISCORD_WEBHOOK
             valueFrom:
               secretKeyRef:
-                name: weather-discord-api
+                name: weather-app-secret
                 key: DISCORD_WEBHOOK
           - name: REDIS_HOST
             valueFrom:
               secretKeyRef:
-                name: weather-redis
+                name: weather-app-secret
                 key: REDIS_HOST
           - name: REDIS_PORT
             value: "6379"
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: weather-redis
+                key: redis-password

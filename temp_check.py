@@ -13,6 +13,7 @@ OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY')
 DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK')
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
+REDIS_PASSWORD = os.environ.get('redis-password')
 
 TEMP_THRESHOLD_HIGH = 78
 TEMP_THRESHOLD_LOW = 80
@@ -21,7 +22,7 @@ STATE_KEY_LOW = 'state_low'
 LATITUDE = 40.589820
 LONGITUDE = -105.066320
 
-redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
 
 def get_current_temperature():
     try:
