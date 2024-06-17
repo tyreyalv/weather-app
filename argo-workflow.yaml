@@ -1,4 +1,3 @@
-apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
   name: weather-check-workflow-dev
@@ -21,17 +20,22 @@ spec:
           - name: OPENWEATHERMAP_API_KEY
             valueFrom:
               secretKeyRef:
-                name: openweather-api
+                name: weather-app-secrets
                 key: OPENWEATHERMAP_API_KEY
           - name: DISCORD_WEBHOOK
             valueFrom:
               secretKeyRef:
-                name: weather-discord-api
+                name: weather-app-secrets
                 key: DISCORD_WEBHOOK
           - name: REDIS_HOST
             valueFrom:
               secretKeyRef:
-                name: weather-redis
+                name: weather-app-secrets
                 key: REDIS_HOST
           - name: REDIS_PORT
             value: "6379"
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: weather-app-secrets
+                key: REDIS_PASSWORD
