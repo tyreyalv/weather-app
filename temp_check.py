@@ -25,7 +25,10 @@ def get_current_temperature():
         response = requests.get(weather_api_endpoint)
         response.raise_for_status()
         data = response.json()
-        return data['current']['temp']
+        temp = data['current']['temp']
+        weather = data['current']['weather'][0]['description']
+        logging.info(f"Current temperature: {temp} degrees. Weather: {weather}.")
+        return temp
     except Exception as e:
         logging.error(f"Failed to get temperature: {e}")
         return None
