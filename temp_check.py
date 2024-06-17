@@ -16,6 +16,8 @@ TEMP_THRESHOLD_LOW = float(os.getenv('TEMP_THRESHOLD_LOW', 74.5))
 STATE_KEY_HIGH = os.getenv('STATE_KEY_HIGH', 'state_high')
 STATE_KEY_LOW = os.getenv('STATE_KEY_LOW', 'state_low')
 
+logging.basicConfig(level=logging.INFO)
+
 # Redis DB setup
 redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
 
