@@ -1,28 +1,22 @@
-import requests
 import os
 import logging
-from dotenv import load_dotenv
 import redis
+import requests
 
-load_dotenv()
+# Constants
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY')
+LATITUDE = os.getenv('LATITUDE', '40.410160')
+LONGITUDE = os.getenv('LONGITUDE', '-105.104730')
+DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
+TEMP_THRESHOLD_HIGH = float(os.getenv('TEMP_THRESHOLD_HIGH', 75))
+TEMP_THRESHOLD_LOW = float(os.getenv('TEMP_THRESHOLD_LOW', 74.5))
+STATE_KEY_HIGH = os.getenv('STATE_KEY_HIGH', 'state_high')
+STATE_KEY_LOW = os.getenv('STATE_KEY_LOW', 'state_low')
 
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-OPENWEATHERMAP_API_KEY = os.environ.get('OPENWEATHERMAP_API_KEY')
-DISCORD_WEBHOOK = os.environ.get('DISCORD_WEBHOOK')
-REDIS_HOST = os.environ.get('REDIS_HOST')
-REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
-REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
-
-TEMP_THRESHOLD_HIGH = 75
-TEMP_THRESHOLD_LOW = 74.5
-
-STATE_KEY_HIGH = 'state_high'
-STATE_KEY_LOW = 'state_low'
-LATITUDE = 40.410160
-LONGITUDE = -105.104730
-
+# Redis DB setup
 redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
 
 def get_current_temperature():
@@ -46,6 +40,14 @@ def send_to_discord(message):
     except Exception as e:
         logging.error(f"Failed to send Discord notification: {e}")
 
+def check_temperature(temp, threshold, state_key, state, message):
+    if temp > threshold and state != 'above':
+        logging.info(message)
+        send_to_discord(message)
+        redis_db.set(state_key, 'above')
+    elif temp <= threshold and state != 'below':
+        redis_db.set(state_key, 'below')
+
 def main():
     logging.info("Script started.")
     
@@ -57,7 +59,6 @@ def main():
 
     logging.info(f"Current temperature: {temp} degrees.")
 
-
     state_high = redis_db.get(STATE_KEY_HIGH)
     if state_high is not None:
         state_high = state_high.decode()
@@ -68,21 +69,10 @@ def main():
 
     logging.info(f"Current states from Redis DB: High threshold state: {state_high}, Low threshold state: {state_low}")
 
-    if temp > TEMP_THRESHOLD_HIGH and state_high != 'above':
-        logging.info(f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees.")
-        send_to_discord(f"Temperature in Loveland, CO is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees.")
-        redis_db.set(STATE_KEY_HIGH, 'above')
-    elif temp <= TEMP_THRESHOLD_HIGH and state_high != 'below':
-        redis_db.set(STATE_KEY_HIGH, 'below')
-
-    if temp > TEMP_THRESHOLD_LOW and state_low != 'above':
-        redis_db.set(STATE_KEY_LOW, 'above')
-    elif temp <= TEMP_THRESHOLD_LOW and state_low != 'below':
-        logging.info(f"Temperature is now back under {TEMP_THRESHOLD_LOW} degrees.")
-        send_to_discord(f"Temperature in Loveland, CO is now back under {TEMP_THRESHOLD_LOW} degrees. Current temperature: {temp} degrees.")
-        redis_db.set(STATE_KEY_LOW, 'below')
-
-    logging.info("Script finished successfully.")
+    check_temperature(temp, TEMP_THRESHOLD_HIGH, STATE_KEY_HIGH, state_high, 
+                      f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees.")
+    check_temperature(temp, TEMP_THRESHOLD_LOW, STATE_KEY_LOW, state_low, 
+                      f"Temperature is now below {TEMP_THRESHOLD_LOW} degrees. Current temperature: {temp} degrees.")
 
 if __name__ == "__main__":
     main()
