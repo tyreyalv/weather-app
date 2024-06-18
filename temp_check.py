@@ -12,7 +12,7 @@ LATITUDE = os.getenv('LATITUDE', '40.410160')
 LONGITUDE = os.getenv('LONGITUDE', '-105.104730')
 DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
 TEMP_THRESHOLD_HIGH = float(os.getenv('TEMP_THRESHOLD_HIGH', 75))
-TEMP_THRESHOLD_LOW = float(os.getenv('TEMP_THRESHOLD_LOW', 74.5))
+TEMP_THRESHOLD_LOW = float(os.getenv('TEMP_THRESHOLD_LOW', 80))
 STATE_KEY_HIGH = os.getenv('STATE_KEY_HIGH', 'state_high')
 STATE_KEY_LOW = os.getenv('STATE_KEY_LOW', 'state_low')
 
