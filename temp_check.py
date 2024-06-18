@@ -19,9 +19,13 @@ WINDOWS_CLOSED_KEY = 'windows_closed'
 # Redis DB setup
 redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
 
+logging.basicConfig(level=logging.INFO)
+
 def get_current_temperature():
+    logging.info("Getting current temperature...")
     try:
         weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={LATITUDE}&lon={LONGITUDE}&appid={OPENWEATHERMAP_API_KEY}&units=imperial"
+        logging.info(f"Sending request to {weather_api_endpoint}")
         response = requests.get(weather_api_endpoint)
         response.raise_for_status()
         data = response.json()
@@ -33,15 +37,14 @@ def get_current_temperature():
         logging.error(f"Failed to get temperature: {e}")
         return None
 
-def send_to_discord(message):  
+def send_to_discord(message):
+    logging.info("Sending message to Discord...")
     try:
-        data = {
-            "content": message  
-        }
-        response = requests.post(DISCORD_WEBHOOK, json=data)
+        response = requests.post(DISCORD_WEBHOOK, json={"content": message})
         response.raise_for_status()
+        logging.info("Message sent to Discord successfully.")
     except Exception as e:
-        logging.error(f"Failed to send Discord notification: {e}")
+        logging.error(f"Failed to send message to Discord: {e}")
 
 def check_temperature():
     try:
