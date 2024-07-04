@@ -21,6 +21,7 @@ redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD
 
 logging.basicConfig(level=logging.INFO)
 
+
 def get_current_temperature():
     logging.info("Getting current temperature...")
     try:
@@ -37,6 +38,7 @@ def get_current_temperature():
         logging.error(f"Failed to get temperature: {e}")
         return None
 
+
 def send_to_discord(message):
     logging.info("Sending message to Discord...")
     try:
@@ -45,6 +47,7 @@ def send_to_discord(message):
         logging.info("Message sent to Discord successfully.")
     except Exception as e:
         logging.error(f"Failed to send message to Discord: {e}")
+
 
 def check_temperature():
     try:
@@ -70,7 +73,8 @@ def check_temperature():
         logging.error(f"An error occurred while getting window states from Redis DB: {e}")
         return
 
-    logging.info(f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
+    logging.info(
+        f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
 
     try:
         if temp > TEMP_THRESHOLD_HIGH and (windows_open is None or windows_open == 'True'):
@@ -91,7 +95,7 @@ def check_temperature():
 
 def main():
     logging.info("Script started.")
-    
+
     temp = get_current_temperature()
 
     if temp is None:
@@ -108,7 +112,8 @@ def main():
     if windows_closed is not None:
         windows_closed = windows_closed.decode()
 
-    logging.info(f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
+    logging.info(
+        f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
 
     if temp > TEMP_THRESHOLD_HIGH and (windows_open is None or windows_open == 'True'):
         message = f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees. Close the windows."
@@ -122,6 +127,7 @@ def main():
         send_to_discord(message)
         redis_db.set(WINDOWS_OPEN_KEY, 'True')
         redis_db.set(WINDOWS_CLOSED_KEY, 'False')
+
 
 if __name__ == "__main__":
     main()
