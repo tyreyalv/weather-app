@@ -2,108 +2,126 @@ import os
 import requests
 import logging
 import redis
-import time
-import json
 
-class WeatherMonitor:
-    def __init__(self):
-        self.redis_host = os.getenv('REDIS_HOST', 'localhost')
-        self.redis_port = int(os.getenv('REDIS_PORT', 6379))
-        self.redis_password = os.getenv('REDIS_PASSWORD', None)
-        self.api_key = os.getenv('OPENWEATHERMAP_API_KEY')
-        self.latitude = 40.4104770332582
-        self.longitude = -105.10477952532925
-        self.discord_webhook = os.getenv('DISCORD_WEBHOOK')
-        self.temp_threshold_high = float(os.getenv('TEMP_THRESHOLD_HIGH', 79))
-        self.temp_threshold_low = float(os.getenv('TEMP_THRESHOLD_LOW', 78))
-        self.redis_db = redis.Redis(host=self.redis_host, port=self.redis_port, password=self.redis_password)
-        self.windows_open_key = 'windows_open'
-        self.windows_closed_key = 'windows_closed'
+# Constants
+REDIS_HOST = os.getenv('REDIS_HOST')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
+OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY')
+LATITUDE = 40.41018434579078
+LONGITUDE = -105.10478681459281
+DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
+TEMP_THRESHOLD_HIGH = float(os.getenv('TEMP_THRESHOLD_HIGH', 78))
+TEMP_THRESHOLD_LOW = float(os.getenv('TEMP_THRESHOLD_LOW', 77.5))
+WINDOWS_OPEN_KEY = 'windows_open'
+WINDOWS_CLOSED_KEY = 'windows_closed'
 
-    def fetch_weather_data(self):
-        cached_weather_data = self.redis_db.get('weather_data_v2')
-        if cached_weather_data:
-            logging.info("Using cached weather data.")
-            self.weather_data = json.loads(cached_weather_data.decode('utf-8'))
-            logging.debug(f"Weather data from cache: {self.weather_data}")  # Added for debugging
+# Redis DB setup
+redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
+
+logging.basicConfig(level=logging.INFO)
+
+def get_current_temperature():
+    logging.info("Getting current temperature...")
+    try:
+        weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={LATITUDE}&lon={LONGITUDE}&appid={OPENWEATHERMAP_API_KEY}&units=imperial"
+        logging.info(f"Sending request to {weather_api_endpoint}")
+        response = requests.get(weather_api_endpoint)
+        response.raise_for_status()
+        data = response.json()
+        temp = data['current']['temp']
+        weather = data['current']['weather'][0]['description']
+        logging.info(f"Current temperature: {temp} degrees. Weather: {weather}.")
+        return temp
+    except Exception as e:
+        logging.error(f"Failed to get temperature: {e}")
+        return None
+
+def send_to_discord(message):
+    logging.info("Sending message to Discord...")
+    try:
+        response = requests.post(DISCORD_WEBHOOK, json={"content": message})
+        response.raise_for_status()
+        logging.info("Message sent to Discord successfully.")
+    except Exception as e:
+        logging.error(f"Failed to send message to Discord: {e}")
+
+def check_temperature():
+    try:
+        temp = get_current_temperature()
+        if temp is None:
+            logging.error("Failed to get current temperature.")
             return
+    except Exception as e:
+        logging.error(f"An error occurred while getting the current temperature: {e}")
+        return
 
-        weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={self.latitude}&lon={self.longitude}&appid={self.api_key}&units=imperial"
-        try:
-            logging.info(f"Fetching weather data from API: {weather_api_endpoint}")
-            response = requests.get(weather_api_endpoint)
-            response.raise_for_status()  # This will raise an exception for HTTP errors
-            self.weather_data = response.json()
-            logging.info("Weather data fetched successfully.")
-            logging.debug(f"Weather data from API: {self.weather_data}")  # Added for debugging
-            self.redis_db.set('weather_data_v2', json.dumps(self.weather_data), ex=1800)
-        except requests.exceptions.HTTPError as http_err:
-            logging.error(f"HTTP error occurred: {http_err}")
-            self.weather_data = None
-        except Exception as e:
-            logging.error(f"Failed to fetch weather data: {e}")
-            self.weather_data = None
+    logging.info(f"Current temperature: {temp} degrees.")
 
-    def send_notification(self, message):
-        try:
-            data = {"content": message}
-            response = requests.post(self.discord_webhook, json=data)
-            response.raise_for_status()
-        except Exception as e:
-            logging.error(f"Failed to send Discord notification: {e}")
+    try:
+        windows_open = redis_db.get(WINDOWS_OPEN_KEY)
+        if windows_open is not None:
+            windows_open = windows_open.decode()
 
-    def update_window_state(self, open_state):
-        self.redis_db.set(self.windows_open_key, 'True' if open_state else 'False')
-        self.redis_db.set(self.windows_closed_key, 'False' if open_state else 'True')
+        windows_closed = redis_db.get(WINDOWS_CLOSED_KEY)
+        if windows_closed is not None:
+            windows_closed = windows_closed.decode()
+    except Exception as e:
+        logging.error(f"An error occurred while getting window states from Redis DB: {e}")
+        return
 
-    def check_temperature_and_notify(self):
-        self.fetch_weather_data()  # Ensure weather data is fetched and stored
-        if self.weather_data is None:
-            logging.error("Could not retrieve weather data. Exiting script.")
-            return None
+    logging.info(f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
 
-        # Added logging to inspect the structure of weather_data
-        logging.debug(f"Current weather data: {self.weather_data}")
+    try:
+        if temp > TEMP_THRESHOLD_HIGH and (windows_open is None or windows_open == 'True'):
+            message = f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees. Close the windows."
+            logging.info(message)
+            send_to_discord(message)
+            redis_db.set(WINDOWS_OPEN_KEY, 'False')
+            redis_db.set(WINDOWS_CLOSED_KEY, 'True')
+        elif temp < TEMP_THRESHOLD_LOW and (windows_closed is None or windows_closed == 'True'):
+            message = f"Temperature is now under {TEMP_THRESHOLD_LOW} degrees. Current temperature: {temp} degrees. Open the windows."
+            logging.info(message)
+            send_to_discord(message)
+            redis_db.set(WINDOWS_OPEN_KEY, 'True')
+            redis_db.set(WINDOWS_CLOSED_KEY, 'False')
+    except Exception as e:
+        logging.error(f"An error occurred while checking temperature and updating Redis DB: {e}")
 
-        try:
-            temp = self.weather_data['current']['temp']
-        except KeyError as e:
-            logging.error(f"KeyError accessing temperature data: {e}")
-            return None
 
-        windows_open = self.redis_db.get(self.windows_open_key)
-        windows_open = windows_open.decode() if windows_open else None
-
-        if temp >= self.temp_threshold_high and (windows_open is None or windows_open == 'True'):
-            self.send_notification(
-                f"Temperature is now over {self.temp_threshold_high} degrees. Current temperature: {temp} degrees. Close the windows.")
-            self.update_window_state(False)
-        elif temp <= self.temp_threshold_low and (windows_open is None or windows_open == 'False'):
-            self.send_notification(
-                f"Temperature is now under {self.temp_threshold_low} degrees. Current temperature: {temp} degrees. Open the windows.")
-            self.update_window_state(True)
-
-    def check_watering_conditions(self):
-        if self.weather_data is None:
-            logging.error("Weather data not available.")
-            return
-
-        current_temp = self.weather_data['current']['temp']
-        sunset_time = self.weather_data['current']['sunset']
-        current_time = time.time()
-        time_until_sunset = sunset_time - current_time
-
-        if abs(current_temp - 75) <= 5 and time_until_sunset >= 5400:  # 5400 seconds = 90 minutes
-            self.send_notification(
-                "It's a good time to water the grass. Temperature is close to 75 degrees with sufficient sunshine left.")
 def main():
-    logging.basicConfig(level=logging.INFO)
-    weather_monitor = WeatherMonitor()
-    temp = weather_monitor.check_temperature_and_notify()
-    if temp is not None:
-        print(f"Script ran successfully. Current temperature: {temp} degrees.")
-    else:
-        print("Script did not run successfully due to an error fetching the temperature.")
+    logging.info("Script started.")
+    
+    temp = get_current_temperature()
+
+    if temp is None:
+        logging.error("Could not retrieve temperature. Exiting script.")
+        return
+
+    logging.info(f"Current temperature: {temp} degrees.")
+
+    windows_open = redis_db.get(WINDOWS_OPEN_KEY)
+    if windows_open is not None:
+        windows_open = windows_open.decode()
+
+    windows_closed = redis_db.get(WINDOWS_CLOSED_KEY)
+    if windows_closed is not None:
+        windows_closed = windows_closed.decode()
+
+    logging.info(f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
+
+    if temp > TEMP_THRESHOLD_HIGH and (windows_open is None or windows_open == 'True'):
+        message = f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees. Close the windows."
+        logging.info(message)
+        send_to_discord(message)
+        redis_db.set(WINDOWS_OPEN_KEY, 'False')
+        redis_db.set(WINDOWS_CLOSED_KEY, 'True')
+    elif temp < TEMP_THRESHOLD_LOW and (windows_closed is None or windows_closed == 'True'):
+        message = f"Temperature is now under {TEMP_THRESHOLD_LOW} degrees. Current temperature: {temp} degrees. Open the windows."
+        logging.info(message)
+        send_to_discord(message)
+        redis_db.set(WINDOWS_OPEN_KEY, 'True')
+        redis_db.set(WINDOWS_CLOSED_KEY, 'False')
 
 if __name__ == "__main__":
     main()
