@@ -45,22 +45,30 @@ class WeatherMonitor:
         temp = self.get_current_temperature()
         if temp is None:
             logging.error("Could not retrieve temperature. Exiting script.")
-            return
+            return None  # Return None if temperature couldn't be fetched
 
         windows_open = self.redis_db.get(self.windows_open_key)
         windows_open = windows_open.decode() if windows_open else None
 
         if temp >= self.temp_threshold_high and (windows_open is None or windows_open == 'True'):
-            self.send_notification(f"Temperature is now over {self.temp_threshold_high} degrees. Current temperature: {temp} degrees. Close the windows.")
+            self.send_notification(
+                f"Temperature is now over {self.temp_threshold_high} degrees. Current temperature: {temp} degrees. Close the windows.")
             self.update_window_state(False)
         elif temp <= self.temp_threshold_low and (windows_open is None or windows_open == 'False'):
-            self.send_notification(f"Temperature is now under {self.temp_threshold_low} degrees. Current temperature: {temp} degrees. Open the windows.")
+            self.send_notification(
+                f"Temperature is now under {self.temp_threshold_low} degrees. Current temperature: {temp} degrees. Open the windows.")
             self.update_window_state(True)
+
+        return temp  # Return the fetched temperature
 
 def main():
     logging.basicConfig(level=logging.INFO)
     weather_monitor = WeatherMonitor()
-    weather_monitor.check_temperature_and_notify()
+    temp = weather_monitor.check_temperature_and_notify()
+    if temp is not None:
+        print(f"Script ran successfully. Current temperature: {temp} degrees.")
+    else:
+        print("Script did not run successfully due to an error fetching the temperature.")
 
 if __name__ == "__main__":
     main()
