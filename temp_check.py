@@ -3,122 +3,64 @@ import requests
 import logging
 import redis
 
-# Constants
-REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
-REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
-OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY')
-LATITUDE = os.getenv('LATITUDE')
-LONGITUDE = os.getenv('LONGITUDE')
-DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
-TEMP_THRESHOLD_HIGH = float(os.getenv('TEMP_THRESHOLD_HIGH', 80))
-TEMP_THRESHOLD_LOW = float(os.getenv('TEMP_THRESHOLD_LOW', 70))
-WINDOWS_OPEN_KEY = 'windows_open'
-WINDOWS_CLOSED_KEY = 'windows_closed'
+class WeatherMonitor:
+    def __init__(self):
+        self.redis_host = os.getenv('REDIS_HOST', 'localhost')
+        self.redis_port = int(os.getenv('REDIS_PORT', 6379))
+        self.redis_password = os.getenv('REDIS_PASSWORD', None)
+        self.api_key = os.getenv('OPENWEATHERMAP_API_KEY')
+        self.latitude = os.getenv('LATITUDE')
+        self.longitude = os.getenv('LONGITUDE')
+        self.discord_webhook = os.getenv('DISCORD_WEBHOOK')
+        self.temp_threshold_high = float(os.getenv('TEMP_THRESHOLD_HIGH', 80))
+        self.temp_threshold_low = float(os.getenv('TEMP_THRESHOLD_LOW', 70))
+        self.redis_db = redis.Redis(host=self.redis_host, port=self.redis_port, password=self.redis_password)
+        self.windows_open_key = 'windows_open'
+        self.windows_closed_key = 'windows_closed'
 
-# Redis DB setup
-redis_db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD)
+    def get_current_temperature(self):
+        weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={self.latitude}&lon={self.longitude}&appid={self.api_key}&units=imperial"
+        try:
+            response = requests.get(weather_api_endpoint)
+            response.raise_for_status()
+            data = response.json()
+            return data['current']['temp']
+        except Exception as e:
+            logging.error(f"Failed to get temperature: {e}")
+            return None
 
-def get_current_temperature():
-    try:
-        weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={LATITUDE}&lon={LONGITUDE}&appid={OPENWEATHERMAP_API_KEY}&units=imperial"
-        response = requests.get(weather_api_endpoint)
-        response.raise_for_status()
-        data = response.json()
-        temp = data['current']['temp']
-        weather = data['current']['weather'][0]['description']
-        logging.info(f"Current temperature: {temp} degrees. Weather: {weather}.")
-        return temp
-    except Exception as e:
-        logging.error(f"Failed to get temperature: {e}")
-        return None
+    def send_notification(self, message):
+        try:
+            data = {"content": message}
+            response = requests.post(self.discord_webhook, json=data)
+            response.raise_for_status()
+        except Exception as e:
+            logging.error(f"Failed to send Discord notification: {e}")
 
-def send_to_discord(message):  
-    try:
-        data = {
-            "content": message  
-        }
-        response = requests.post(DISCORD_WEBHOOK, json=data)
-        response.raise_for_status()
-    except Exception as e:
-        logging.error(f"Failed to send Discord notification: {e}")
+    def update_window_state(self, open_state):
+        self.redis_db.set(self.windows_open_key, 'True' if open_state else 'False')
+        self.redis_db.set(self.windows_closed_key, 'False' if open_state else 'True')
 
-def check_temperature():
-    try:
-        temp = get_current_temperature()
+    def check_temperature_and_notify(self):
+        temp = self.get_current_temperature()
         if temp is None:
-            logging.error("Failed to get current temperature.")
+            logging.error("Could not retrieve temperature. Exiting script.")
             return
-    except Exception as e:
-        logging.error(f"An error occurred while getting the current temperature: {e}")
-        return
 
-    logging.info(f"Current temperature: {temp} degrees.")
+        windows_open = self.redis_db.get(self.windows_open_key)
+        windows_open = windows_open.decode() if windows_open else None
 
-    try:
-        windows_open = redis_db.get(WINDOWS_OPEN_KEY)
-        if windows_open is not None:
-            windows_open = windows_open.decode()
-
-        windows_closed = redis_db.get(WINDOWS_CLOSED_KEY)
-        if windows_closed is not None:
-            windows_closed = windows_closed.decode()
-    except Exception as e:
-        logging.error(f"An error occurred while getting window states from Redis DB: {e}")
-        return
-
-    logging.info(f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
-
-    try:
-        if temp > TEMP_THRESHOLD_HIGH and (windows_open is None or windows_open == 'True'):
-            message = f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees. Close the windows."
-            logging.info(message)
-            send_to_discord(message)
-            redis_db.set(WINDOWS_OPEN_KEY, 'False')
-            redis_db.set(WINDOWS_CLOSED_KEY, 'True')
-        elif temp < TEMP_THRESHOLD_LOW and (windows_closed is None or windows_closed == 'True'):
-            message = f"Temperature is now under {TEMP_THRESHOLD_LOW} degrees. Current temperature: {temp} degrees. Open the windows."
-            logging.info(message)
-            send_to_discord(message)
-            redis_db.set(WINDOWS_OPEN_KEY, 'True')
-            redis_db.set(WINDOWS_CLOSED_KEY, 'False')
-    except Exception as e:
-        logging.error(f"An error occurred while checking temperature and updating Redis DB: {e}")
-
+        if temp >= self.temp_threshold_high and (windows_open is None or windows_open == 'True'):
+            self.send_notification(f"Temperature is now over {self.temp_threshold_high} degrees. Current temperature: {temp} degrees. Close the windows.")
+            self.update_window_state(False)
+        elif temp <= self.temp_threshold_low and (windows_open is None or windows_open == 'False'):
+            self.send_notification(f"Temperature is now under {self.temp_threshold_low} degrees. Current temperature: {temp} degrees. Open the windows.")
+            self.update_window_state(True)
 
 def main():
-    logging.info("Script started.")
-    
-    temp = get_current_temperature()
-
-    if temp is None:
-        logging.error("Could not retrieve temperature. Exiting script.")
-        return
-
-    logging.info(f"Current temperature: {temp} degrees.")
-
-    windows_open = redis_db.get(WINDOWS_OPEN_KEY)
-    if windows_open is not None:
-        windows_open = windows_open.decode()
-
-    windows_closed = redis_db.get(WINDOWS_CLOSED_KEY)
-    if windows_closed is not None:
-        windows_closed = windows_closed.decode()
-
-    logging.info(f"Current states from Redis DB: Windows open state: {windows_open}, Windows closed state: {windows_closed}")
-
-    if temp > TEMP_THRESHOLD_HIGH and (windows_open is None or windows_open == 'True'):
-        message = f"Temperature is now over {TEMP_THRESHOLD_HIGH} degrees. Current temperature: {temp} degrees. Close the windows."
-        logging.info(message)
-        send_to_discord(message)
-        redis_db.set(WINDOWS_OPEN_KEY, 'False')
-        redis_db.set(WINDOWS_CLOSED_KEY, 'True')
-    elif temp < TEMP_THRESHOLD_LOW and (windows_closed is None or windows_closed == 'True'):
-        message = f"Temperature is now under {TEMP_THRESHOLD_LOW} degrees. Current temperature: {temp} degrees. Open the windows."
-        logging.info(message)
-        send_to_discord(message)
-        redis_db.set(WINDOWS_OPEN_KEY, 'True')
-        redis_db.set(WINDOWS_CLOSED_KEY, 'False')
+    logging.basicConfig(level=logging.INFO)
+    weather_monitor = WeatherMonitor()
+    weather_monitor.check_temperature_and_notify()
 
 if __name__ == "__main__":
     main()
