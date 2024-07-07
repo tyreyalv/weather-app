@@ -25,6 +25,7 @@ class WeatherMonitor:
         if cached_weather_data:
             logging.info("Using cached weather data.")
             self.weather_data = json.loads(cached_weather_data.decode('utf-8'))
+            logging.debug(f"Weather data from cache: {self.weather_data}")  # Added for debugging
             return
 
         weather_api_endpoint = f"https://api.openweathermap.org/data/3.0/onecall?lat={self.latitude}&lon={self.longitude}&appid={self.api_key}&units=imperial"
@@ -34,6 +35,7 @@ class WeatherMonitor:
             response.raise_for_status()  # This will raise an exception for HTTP errors
             self.weather_data = response.json()
             logging.info("Weather data fetched successfully.")
+            logging.debug(f"Weather data from API: {self.weather_data}")  # Added for debugging
             self.redis_db.set('weather_data_v2', json.dumps(self.weather_data), ex=1800)
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}")
@@ -60,7 +62,15 @@ class WeatherMonitor:
             logging.error("Could not retrieve weather data. Exiting script.")
             return None
 
-        temp = self.weather_data['current']['temp']
+        # Added logging to inspect the structure of weather_data
+        logging.debug(f"Current weather data: {self.weather_data}")
+
+        try:
+            temp = self.weather_data['current']['temp']
+        except KeyError as e:
+            logging.error(f"KeyError accessing temperature data: {e}")
+            return None
+
         windows_open = self.redis_db.get(self.windows_open_key)
         windows_open = windows_open.decode() if windows_open else None
 
@@ -71,7 +81,7 @@ class WeatherMonitor:
         elif temp <= self.temp_threshold_low and (windows_open is None or windows_open == 'False'):
             self.send_notification(
                 f"Temperature is now under {self.temp_threshold_low} degrees. Current temperature: {temp} degrees. Open the windows.")
-            self.update_window_state(True)  # Return the fetched temperature
+            self.update_window_state(True)
 
     def check_watering_conditions(self):
         if self.weather_data is None:
