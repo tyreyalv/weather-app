@@ -1,17 +1,19 @@
 kind: CronWorkflow
 metadata:
-  name: weather-check-workflow-dev
+  name: weather-check-workflow-main
   namespace: argo
 spec:
   schedule: "*/10 5-20 * * *"
   concurrencyPolicy: "Replace"
   startingDeadlineSeconds: 0
   workflowSpec:
+    imagePullSecrets:
+      - name: argo-registry
     entrypoint: main
     templates:
     - name: main
       container:
-        image: registry.tyreyalv.com/jenkins/weather-app:dev
+        image: registry.tyreyalv.com/jenkins/weather-app:main
         imagePullPolicy: Always
         command: ["python", "/app/temp_check.py"]
         imagePullSecrets:
@@ -37,5 +39,5 @@ spec:
           - name: REDIS_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: weather-app-secrets
-                key: REDIS_PASSWORD
+                name: weather-redis
+                key: redis-password
