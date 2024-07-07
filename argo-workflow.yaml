@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
-  name: weather-check-workflow-dev
+  name: weather-check-workflow-main
   namespace: argo
 spec:
   schedule: "*/10 5-20 * * *"
@@ -14,7 +14,7 @@ spec:
     templates:
     - name: main
       container:
-        image: registry.tyreyalv.com/jenkins/weather-app:dev
+        image: registry.tyreyalv.com/jenkins/weather-app:main
         imagePullPolicy: Always
         command: ["python", "/app/temp_check.py"]
         imagePullSecrets:
@@ -23,17 +23,17 @@ spec:
           - name: OPENWEATHERMAP_API_KEY
             valueFrom:
               secretKeyRef:
-                name: weather-app-secret
+                name: weather-app-secrets
                 key: OPENWEATHERMAP_API_KEY
           - name: DISCORD_WEBHOOK
             valueFrom:
               secretKeyRef:
-                name: weather-app-secret
+                name: weather-app-secrets
                 key: DISCORD_WEBHOOK
           - name: REDIS_HOST
             valueFrom:
               secretKeyRef:
-                name: weather-app-secret
+                name: weather-app-secrets
                 key: REDIS_HOST
           - name: REDIS_PORT
             value: "6379"
