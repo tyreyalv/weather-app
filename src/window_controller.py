@@ -1,4 +1,5 @@
 import logging
+from .config import Config
 
 class WindowController:
     def __init__(self, redis_service, notifier):
