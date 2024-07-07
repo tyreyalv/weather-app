@@ -28,10 +28,9 @@ if __name__ == "__main__":
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
 
-    config = Config()
-    redis_service = RedisService(config.REDIS_HOST, config.REDIS_PORT, config.REDIS_PASSWORD)
-    weather_service = WeatherService(config.OPENWEATHERMAP_API_KEY)
-    notifier = Notifier(config.DISCORD_WEBHOOK)
+    redis_service = RedisService(Config.REDIS_HOST, Config.REDIS_PORT, Config.REDIS_PASSWORD)
+    weather_service = WeatherService(Config.OPENWEATHERMAP_API_KEY)
+    notifier = Notifier(Config.DISCORD_WEBHOOK)
     window_controller = WindowController(redis_service, notifier)
     temperature_monitor = TemperatureMonitor(weather_service, window_controller)
 
