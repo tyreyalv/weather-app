@@ -1,4 +1,3 @@
-apiVersion: argoproj.io/v1alpha1
 kind: CronWorkflow
 metadata:
   name: weather-check-workflow-main
@@ -16,7 +15,7 @@ spec:
       container:
         image: registry.tyreyalv.com/jenkins/weather-app:main
         imagePullPolicy: Always
-        command: ["python", "/app/temp_check.py"]
+        command: ["python", "/app/main.py"]
         imagePullSecrets:
         - name: argo-registry
         env:
