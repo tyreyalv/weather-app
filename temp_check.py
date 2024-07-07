@@ -9,8 +9,8 @@ class WeatherMonitor:
         self.redis_port = int(os.getenv('REDIS_PORT', 6379))
         self.redis_password = os.getenv('REDIS_PASSWORD', None)
         self.api_key = os.getenv('OPENWEATHERMAP_API_KEY')
-        self.latitude = os.getenv('LATITUDE')
-        self.longitude = os.getenv('LONGITUDE')
+        self.latitude = 40.4104770332582
+        self.longitude = -105.10477952532925
         self.discord_webhook = os.getenv('DISCORD_WEBHOOK')
         self.temp_threshold_high = float(os.getenv('TEMP_THRESHOLD_HIGH', 80))
         self.temp_threshold_low = float(os.getenv('TEMP_THRESHOLD_LOW', 70))
