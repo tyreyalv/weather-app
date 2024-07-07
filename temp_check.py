@@ -21,7 +21,7 @@ class WeatherMonitor:
         self.windows_closed_key = 'windows_closed'
 
     def fetch_weather_data(self):
-        cached_weather_data = self.redis_db.get('weather_data')
+        cached_weather_data = self.redis_db.get('weather_data_v2')
         if cached_weather_data:
             logging.info("Using cached weather data.")
             self.weather_data = json.loads(cached_weather_data.decode('utf-8'))
@@ -34,7 +34,7 @@ class WeatherMonitor:
             response.raise_for_status()  # This will raise an exception for HTTP errors
             self.weather_data = response.json()
             logging.info("Weather data fetched successfully.")
-            self.redis_db.set('weather_data', json.dumps(self.weather_data), ex=1800)
+            self.redis_db.set('weather_data_v2', json.dumps(self.weather_data), ex=1800)
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}")
             self.weather_data = None
