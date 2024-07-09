@@ -15,7 +15,7 @@ class Config:
     DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
 
     # Temperature thresholds
-    TEMP_THRESHOLD_CLOSE = float(os.getenv('TEMP_THRESHOLD_CLOSE', 80))
+    TEMP_THRESHOLD_CLOSE = float(os.getenv('TEMP_THRESHOLD_CLOSE', 78))
     TEMP_THRESHOLD_OPEN = float(os.getenv('TEMP_THRESHOLD_OPEN', 78))
 
     # Redis keys for window states
