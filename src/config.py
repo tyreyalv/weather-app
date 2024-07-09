@@ -16,7 +16,7 @@ class Config:
 
     # Temperature thresholds
     TEMP_THRESHOLD_CLOSE = float(os.getenv('TEMP_THRESHOLD_CLOSE', 80))
-    TEMP_THRESHOLD_OPEN = float(os.getenv('TEMP_THRESHOLD_OPEN', 75))
+    TEMP_THRESHOLD_OPEN = float(os.getenv('TEMP_THRESHOLD_OPEN', 78))
 
     # Redis keys for window states
     WINDOWS_OPEN_KEY = 'windows_open'
