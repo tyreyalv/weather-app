@@ -1,4 +1,5 @@
 import logging
+import os
 from dotenv import load_dotenv
 from src.config import Config
 from src.redis_service import RedisService
@@ -6,6 +7,9 @@ from src.weather_service import WeatherService
 from src.notifier import Notifier
 from src.window_controller import WindowController
 
+# Load environment variables
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+load_dotenv(dotenv_path)
 
 class TemperatureMonitor:
     def __init__(self, weather_service, window_controller):
@@ -14,7 +18,7 @@ class TemperatureMonitor:
 
     def run(self):
         logging.info("Script started.")
-        temp = self.weather_service.get_current_temperature()
+        temp, sunset = self.weather_service.get_current_weather()
         if temp is None:
             logging.error("Could not retrieve temperature. Exiting script.")
             return
@@ -23,9 +27,7 @@ class TemperatureMonitor:
         self.window_controller.check_and_update_window_state(temp, Config.TEMP_THRESHOLD_CLOSE,
                                                              Config.TEMP_THRESHOLD_OPEN)
 
-
 if __name__ == "__main__":
-    load_dotenv()
     logging.basicConfig(level=logging.INFO)
 
     redis_service = RedisService(Config.REDIS_HOST, Config.REDIS_PORT, Config.REDIS_PASSWORD)
