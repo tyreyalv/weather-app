@@ -1,15 +1,13 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import logging
 import os
-from dotenv import load_dotenv
 from src.config import Config
 from src.redis_service import RedisService
 from src.weather_service import WeatherService
 from src.notifier import Notifier
 from src.window_controller import WindowController
-
-# Load environment variables
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-load_dotenv(dotenv_path)
 
 class TemperatureMonitor:
     def __init__(self, weather_service, window_controller):

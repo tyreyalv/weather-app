@@ -1,7 +1,11 @@
 import os
+import logging
 
 class Config:
+    logging.basicConfig(level=logging.INFO)
+
     ENV = os.getenv('ENV', 'production')
+    logging.info(f"Environment: {ENV}")
 
     # Redis configuration for production
     REDIS_HOST = os.getenv('REDIS_HOST')
@@ -21,3 +25,6 @@ class Config:
     # Redis keys for window states
     WINDOWS_OPEN_KEY = 'windows_open'
     WINDOWS_CLOSED_KEY = 'windows_closed'
+
+    logging.info(f"Redis Host: {REDIS_HOST}")
+    logging.info(f"OpenWeatherMap API Key: {OPENWEATHERMAP_API_KEY}")
