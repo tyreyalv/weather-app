@@ -27,8 +27,12 @@ class TemperatureMonitor:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    try:
+        redis_service = RedisService(Config.REDIS_HOST, Config.REDIS_PORT, Config.REDIS_PASSWORD)
+    except ConnectionError as e:
+        logging.error(f"Could not connect to Redis. Exiting script. Error: {e}")
+        exit(1)
 
-    redis_service = RedisService(Config.REDIS_HOST, Config.REDIS_PORT, Config.REDIS_PASSWORD)
     weather_service = WeatherService(Config.OPENWEATHERMAP_API_KEY)
     notifier = Notifier(Config.DISCORD_WEBHOOK)
     window_controller = WindowController(redis_service, notifier)
