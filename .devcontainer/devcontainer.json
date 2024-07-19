@@ -12,8 +12,5 @@
     "runArgs": ["--shm-size=8g"],
     "containerEnv": {
         "PYTHONPATH": "/workspaces/weather-app"
-    },
-    "mounts": [
-        "source=${localWorkspaceFolder}/.env,target=/workspaces/weather-app/.env,type=bind"
-    ]
+    }
 }
