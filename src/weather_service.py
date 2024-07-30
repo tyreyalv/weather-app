@@ -20,8 +20,9 @@ class WeatherService:
             temp = data['current']['temp']
             weather = data['current']['weather'][0]['description']
             sunset = data['current']['sunset']
-            logging.info(f"Current temperature: {temp} degrees. Weather: {weather}. Sunset: {sunset}.")
-            return temp, sunset
+            daily_high = data['daily'][0]['temp']['max']
+            logging.info(f"Current temperature: {temp} degrees. Weather: {weather}. Sunset: {sunset}. Daily high: {daily_high} degrees.")
+            return temp, sunset, daily_high
         except Exception as e:
             logging.error(f"Failed to get weather data: {e}")
-            return None, None
+            return None, None, None
