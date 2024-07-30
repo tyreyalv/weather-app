@@ -1,13 +1,15 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 import logging
 import os
+import ray
 from src.config import Config
 from src.redis_service import RedisService
 from src.weather_service import WeatherService
 from src.notifier import Notifier
 from src.window_controller import WindowController
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 class TemperatureMonitor:
     def __init__(self, weather_service, window_controller):
@@ -36,6 +38,7 @@ if __name__ == "__main__":
     weather_service = WeatherService(Config.OPENWEATHERMAP_API_KEY)
     notifier = Notifier(Config.DISCORD_WEBHOOK)
     window_controller = WindowController(redis_service, notifier)
+    
     temperature_monitor = TemperatureMonitor(weather_service, window_controller)
 
     temperature_monitor.run()
