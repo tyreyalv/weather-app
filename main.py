@@ -1,13 +1,11 @@
 import logging
 import os
-import ray
+from dotenv import load_dotenv
 from src.config import Config
 from src.redis_service import RedisService
 from src.weather_service import WeatherService
 from src.notifier import Notifier
 from src.window_controller import WindowController
-from dotenv import load_dotenv
-
 
 load_dotenv()
 
@@ -18,14 +16,20 @@ class TemperatureMonitor:
 
     def run(self):
         logging.info("Script started.")
-        temp, sunset = self.weather_service.get_current_weather()
+        temp, sunset, daily_high = self.weather_service.get_current_weather()
         if temp is None:
             logging.error("Could not retrieve temperature. Exiting script.")
             return
 
-        logging.info(f"Current temperature: {temp} degrees.")
-        self.window_controller.check_and_update_window_state(temp, Config.TEMP_THRESHOLD_CLOSE,
-                                                             Config.TEMP_THRESHOLD_OPEN)
+        logging.info(f"Current temperature: {temp} degrees. Daily high: {daily_high} degrees.")
+        
+        # Adjust open threshold based on daily high temperature
+        open_threshold = Config.TEMP_THRESHOLD_OPEN
+        if daily_high >= 95:
+            open_threshold = 85
+            logging.info(f"Daily high is {daily_high} degrees. Adjusting open threshold to {open_threshold} degrees.")
+
+        self.window_controller.check_and_update_window_state(temp, Config.TEMP_THRESHOLD_CLOSE, open_threshold)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
