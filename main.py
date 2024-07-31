@@ -1,5 +1,5 @@
-import logging
 import os
+import logging
 from dotenv import load_dotenv
 from src.config import Config
 from src.redis_service import RedisService
@@ -24,13 +24,17 @@ class TemperatureMonitor:
 
         logging.info(f"Current temperature: {temp} degrees. Daily high: {daily_high} degrees.")
         
-        # Adjust open threshold based on daily high temperature
-        open_threshold = Config.TEMP_THRESHOLD_OPEN
+        # Adjust thresholds based on daily high temperature
         if daily_high >= 95:
             open_threshold = 85
-            logging.info(f"Daily high is {daily_high} degrees. Adjusting open threshold to {open_threshold} degrees.")
+            close_threshold = 85
+            logging.info(f"Daily high is {daily_high} degrees. Adjusting thresholds to {open_threshold} degrees.")
+        else:
+            open_threshold = Config.TEMP_THRESHOLD_OPEN
+            close_threshold = Config.TEMP_THRESHOLD_CLOSE
 
-        self.window_controller.check_and_update_window_state(temp, Config.TEMP_THRESHOLD_CLOSE, open_threshold)
+        self.window_controller.check_and_update_window_state(temp, close_threshold, open_threshold)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
