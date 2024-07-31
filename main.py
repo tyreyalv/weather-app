@@ -6,6 +6,7 @@ from src.redis_service import RedisService
 from src.weather_service import WeatherService
 from src.notifier import Notifier
 from src.window_controller import WindowController
+from src.water import WateringScheduler
 
 load_dotenv()
 
@@ -39,10 +40,12 @@ if __name__ == "__main__":
         logging.error(f"Could not connect to Redis. Exiting script. Error: {e}")
         exit(1)
 
-    weather_service = WeatherService(Config.OPENWEATHERMAP_API_KEY)
+    weather_service = WeatherService(Config.OPENWEATHERMAP_API_KEY, redis_service)
     notifier = Notifier(Config.DISCORD_WEBHOOK)
     window_controller = WindowController(redis_service, notifier)
     
     temperature_monitor = TemperatureMonitor(weather_service, window_controller)
+    watering_scheduler = WateringScheduler(redis_service, notifier)  # Pass redis_service here
 
     temperature_monitor.run()
+    watering_scheduler.check_watering_time()

@@ -11,6 +11,7 @@ class Config:
     REDIS_HOST = os.getenv('REDIS_HOST')
     REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
     REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', None)
+    REDIS_DB = int(os.getenv('REDIS_DB', 0))
 
     # OpenWeatherMap API Key
     OPENWEATHERMAP_API_KEY = os.getenv('OPENWEATHERMAP_API_KEY')

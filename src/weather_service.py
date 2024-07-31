@@ -1,13 +1,15 @@
 import logging
 import requests
 from datetime import datetime
+import redis
 
 LATITUDE = 40.41018434579078
 LONGITUDE = -105.10478681459281
 
 class WeatherService:
-    def __init__(self, api_key):
+    def __init__(self, api_key, redis_service):
         self.api_key = api_key
+        self.redis_service = redis_service
 
     def get_current_weather(self):
         logging.info("Getting current weather data...")
@@ -22,6 +24,11 @@ class WeatherService:
             sunset = data['current']['sunset']
             daily_high = data['daily'][0]['temp']['max']
             logging.info(f"Current temperature: {temp} degrees. Weather: {weather}. Sunset: {sunset}. Daily high: {daily_high} degrees.")
+            
+            # Save data to Redis
+            timestamp = datetime.now().isoformat()
+            self.redis_service.set(f"weather:{timestamp}", data)
+            
             return temp, sunset, daily_high
         except Exception as e:
             logging.error(f"Failed to get weather data: {e}")
