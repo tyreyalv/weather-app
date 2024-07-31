@@ -1,11 +1,16 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
 {
-	"name": "Python Devcontainer",
-	"image": "registry.tyreyalv.com/jenkins/home-ray-cluster:main",
-	"extensions":["ms-python.python", "ms-python.pylint", "ms-python.isort", "ms-python.vscode-pylance", "ms-python.black-formatter", "ms-python.autopep8"],
-	"runArgs": ["--shm-size=8g"],
-	"containerEnv": {
+    "name": "Python Devcontainer",
+    "image": "registry.tyreyalv.com/jenkins/home-ray-cluster:main",
+    "extensions": [
+        "ms-python.python",
+        "ms-python.pylint",
+        "ms-python.isort",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-python.autopep8"
+    ],
+    "runArgs": ["--shm-size=8g"],
+    "containerEnv": {
         "PYTHONPATH": "/workspaces/weather-app"
     }
 }
