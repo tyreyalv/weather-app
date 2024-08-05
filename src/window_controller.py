@@ -43,3 +43,27 @@ class WindowController:
             logging.info("Windows opened successfully.")
         else:
             logging.info("No change in window state required.")
+
+        # Check AQI and notify if above 3
+        logging.info("Checking AQI...")
+        weather_info = self.redis_service.get_latest_weather_data()
+        print(f"Weather data retrieved from Redis: {weather_info}")  # Added print statement
+        if weather_info:
+            aqi = weather_info.get('aqi', None)
+            if aqi is not None:
+                logging.debug(f"Current AQI: {aqi}")
+                if aqi >= 3:
+                    message = (
+                        f"🌫️ **Air Quality Alert!**\n\n"
+                        f"The current Air Quality Index (AQI) is {aqi}, which scaled is above the safe threshold of 80 or higher.\n"
+                        f"🚪 **Action to take:** Keep windows closed to avoid poor air quality indoors.\n"
+                        f"Stay safe! 😷"
+                    )
+                    self.notifier.send_to_discord(message)
+                    logging.info("AQI alert sent successfully.")
+                else:
+                    logging.info("AQI is within safe limits.")
+            else:
+                logging.warning("AQI data not available.")
+        else:
+            logging.warning("Weather data not available.")

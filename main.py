@@ -25,7 +25,7 @@ class TemperatureMonitor:
         logging.info(f"Current temperature: {temp} degrees. Daily high: {daily_high} degrees.")
         
         # Adjust thresholds based on daily high temperature
-        if daily_high >= 95:
+        if daily_high >= 90:
             open_threshold = 85
             close_threshold = 85
             logging.info(f"Daily high is {daily_high} degrees. Adjusting thresholds to {open_threshold} degrees.")
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     window_controller = WindowController(redis_service, notifier)
     
     temperature_monitor = TemperatureMonitor(weather_service, window_controller)
-    watering_scheduler = WateringScheduler(redis_service, notifier)  # Pass redis_service here
+    watering_scheduler = WateringScheduler(redis_service, notifier)
 
     temperature_monitor.run()
-    watering_scheduler.check_watering_time()
+    #watering_scheduler.check_watering_time()

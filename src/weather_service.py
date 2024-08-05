@@ -24,10 +24,26 @@ class WeatherService:
             sunset = data['current']['sunset']
             daily_high = data['daily'][0]['temp']['max']
             logging.info(f"Current temperature: {temp} degrees. Weather: {weather}. Sunset: {sunset}. Daily high: {daily_high} degrees.")
+
+            aqi_api_endpoint = f"https://api.openweathermap.org/data/2.5/air_pollution?lat={LATITUDE}&lon={LONGITUDE}&appid={self.api_key}"
+            logging.info(f"Sending request to {aqi_api_endpoint}")
+            aqi_response = requests.get(aqi_api_endpoint)
+            aqi_response.raise_for_status()
+            aqi_data = aqi_response.json()
+            aqi = aqi_data['list'][0]['main']['aqi']
+            logging.info(f"Current AQI: {aqi}")
             
             # Save data to Redis
             timestamp = datetime.now().isoformat()
-            self.redis_service.set(f"weather:{timestamp}", data)
+            weather_info = {
+                'temp': temp,
+                'weather': weather,
+                'sunset': sunset,
+                'daily_high': daily_high,
+                'aqi': aqi
+            }
+            logging.info(f"Saving weather data to Redis with key weather:{timestamp}")
+            self.redis_service.set(f"weather:{timestamp}", weather_info)
             
             return temp, sunset, daily_high
         except Exception as e:
