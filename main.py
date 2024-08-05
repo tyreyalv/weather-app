@@ -26,8 +26,8 @@ class TemperatureMonitor:
         
         # Adjust thresholds based on daily high temperature
         if daily_high >= 90:
-            open_threshold = 85
-            close_threshold = 80
+            open_threshold = 80
+            close_threshold = 85
             logging.info(f"Daily high is {daily_high} degrees. Adjusting thresholds to {open_threshold} degrees.")
         else:
             open_threshold = Config.TEMP_THRESHOLD_OPEN
