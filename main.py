@@ -39,7 +39,7 @@ class TemperatureMonitor:
 
         # Call check_aqi_and_notify method
         logging.info("Calling check_aqi_and_notify...")
-        self.window_controller.check_aqi_and_notify()
+        #self.window_controller.check_aqi_and_notify()
 
 
 if __name__ == "__main__":
