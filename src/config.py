@@ -20,8 +20,9 @@ class Config:
     DISCORD_WEBHOOK = os.getenv('DISCORD_WEBHOOK')
 
     # Temperature thresholds
-    TEMP_THRESHOLD_CLOSE = float(os.getenv('TEMP_THRESHOLD_CLOSE', 79))
-    TEMP_THRESHOLD_OPEN = float(os.getenv('TEMP_THRESHOLD_OPEN', 78))
+    TEMP_THRESHOLD_CLOSE = float(os.getenv('TEMP_THRESHOLD_CLOSE', 80))
+    TEMP_THRESHOLD_OPEN = float(os.getenv('TEMP_THRESHOLD_OPEN', 75))
+    HYSTERESIS = 5
 
     # Redis keys for window states
     WINDOWS_OPEN_KEY = 'windows_open'

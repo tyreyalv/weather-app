@@ -29,13 +29,13 @@ class WindowController:
             )
             self.notifier.send_to_discord(message)
             logging.info("Windows closed successfully.")
-        elif current_temp <= open_threshold and windows_closed == 'True':
+        elif current_temp <= open_threshold - Config.HYSTERESIS and windows_closed == 'True':
             logging.info("Opening windows...")
             self.redis_service.set(Config.WINDOWS_CLOSED_KEY, False)
             self.redis_service.set(Config.WINDOWS_OPEN_KEY, True)
             message = (
                 f"🌡️ **Temperature Alert!**\n\n"
-                f"The current temperature is {current_temp}°F, which is below the open threshold of {open_threshold}°F.\n"
+                f"The current temperature is {current_temp}°F, which is below the open threshold of {open_threshold - Config.HYSTERESIS}°F.\n"
                 f"🚪 **Action to take:** Open the windows to let in the fresh air.\n"
                 f"Enjoy the breeze! 🌬️"
             )
