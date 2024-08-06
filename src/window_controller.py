@@ -2,6 +2,7 @@ import logging
 from src.config import Config
 from src.redis_service import RedisService
 
+
 class WindowController:
     def __init__(self, redis_service, notifier):
         self.redis_service = redis_service
@@ -44,10 +45,10 @@ class WindowController:
         else:
             logging.info("No change in window state required.")
 
-        # Check AQI and notify if above 3
+    
+    def check_aqi_and_notify(self):
         logging.info("Checking AQI...")
         weather_info = self.redis_service.get_latest_weather_data()
-        print(f"Weather data retrieved from Redis: {weather_info}")  # Added print statement
         if weather_info:
             aqi = weather_info.get('aqi', None)
             if aqi is not None:

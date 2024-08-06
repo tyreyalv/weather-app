@@ -1,5 +1,5 @@
 # Build Stage
-FROM python:3.11-slim-bookworm as build
+FROM python:3.11.8-slim-bookworm as build
 WORKDIR /app
 COPY requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip install --no-cache-dir -r requirements.txt --target=/app
 
 # Final Stage
-FROM python:3.11-slim-bookworm
+FROM python:3.11.8-slim-bookworm
 WORKDIR /app
 COPY --from=build /app /app
 COPY . .
