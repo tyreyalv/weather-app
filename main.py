@@ -75,4 +75,4 @@ if __name__ == "__main__":
     temperature_monitor.run()
 
     # Optionally run WateringScheduler
-    watering_scheduler.check_watering_time()
+    #watering_scheduler.check_watering_time()
