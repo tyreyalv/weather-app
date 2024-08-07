@@ -1,6 +1,7 @@
 import logging
 from src.config import Config
 from src.redis_service import RedisService
+from datetime import datetime, timedelta
 
 
 class WindowController:
@@ -54,14 +55,30 @@ class WindowController:
             if aqi is not None:
                 logging.debug(f"Current AQI: {aqi}")
                 if aqi >= 3:
-                    message = (
-                        f"🌫️ **Air Quality Alert!**\n\n"
-                        f"The current Air Quality Index (AQI) is {aqi}, which scaled is above the safe threshold of 80 or higher.\n"
-                        f"🚪 **Action to take:** Keep windows closed to avoid poor air quality indoors.\n"
-                        f"Stay safe! 😷"
-                    )
-                    self.notifier.send_to_discord(message)
-                    logging.info("AQI alert sent successfully.")
+                    # Check the last notification time
+                    last_notification_time_str = self.redis_service.get('last_aqi_notification_time')
+                    if last_notification_time_str:
+                        last_notification_time = datetime.fromisoformat(last_notification_time_str)
+                    else:
+                        last_notification_time = None
+
+                    current_time = datetime.now()
+                    notification_interval = timedelta(hours=1)  # Set the interval to 1 hour
+
+                    if not last_notification_time or (current_time - last_notification_time) > notification_interval:
+                        message = (
+                            f"🌫️ **Air Quality Alert!**\n\n"
+                            f"The current Air Quality Index (AQI) is {aqi}, which scaled is above the safe threshold of 80 or higher.\n"
+                            f"🚪 **Action to take:** Keep windows closed to avoid poor air quality indoors.\n"
+                            f"Stay safe! 😷"
+                        )
+                        self.notifier.send_to_discord(message)
+                        logging.info("AQI alert sent successfully.")
+                        
+                        # Update the last notification time
+                        self.redis_service.set('last_aqi_notification_time', current_time.isoformat())
+                    else:
+                        logging.info("AQI alert not sent to avoid spamming.")
                 else:
                     logging.info("AQI is within safe limits.")
             else:
