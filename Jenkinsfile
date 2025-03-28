@@ -86,7 +86,7 @@ spec:
     post {
         success {
             script {
-                discordSend description: "✅ **Successfully built and pushed image**\nRepository: ${env.repoName}\nBranch: ${env.GIT_BRANCH}\nTag: ${env.GIT_BRANCH}\nDestination: \$HARBOR/jenkins/${env.repoName}:${env.GIT_BRANCH}", 
+                discordSend description: "✅ **Successfully built and pushed image**\nRepository: ${env.repoName}\nBranch: ${env.GIT_BRANCH}\nTag: ${env.GIT_BRANCH}\nDestination: ${env.HARBOR}/jenkins/${env.repoName}:${env.GIT_BRANCH}", 
                           footer: "Build #${env.BUILD_NUMBER} • Completed in ${currentBuild.durationString.replace(' and counting', '')}", 
                           link: env.BUILD_URL, 
                           result: "SUCCESS", // Green color
