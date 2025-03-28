@@ -24,6 +24,8 @@ spec:
     volumeMounts:
       - name: jenkins-docker-cfg
         mountPath: /kaniko/.docker
+      - name: workspace-volume
+        mountPath: /home/jenkins/agent
   volumes:
   - name: jenkins-docker-cfg
     projected:
@@ -33,6 +35,9 @@ spec:
           items:
             - key: .dockerconfigjson
               path: config.json
+  - name: workspace-volume
+    persistentVolumeClaim:
+      claimName: jenkins-workspace
 """
         }
     }
