@@ -6,7 +6,7 @@ pipeline {
     agent {
         kubernetes {
             defaultContainer 'kaniko'
-            workspaceVolume genericEphemeralVolume(storageClassName: 'truenas-csi-rbd', requestsSize: 50, accessModes: 'ReadWriteOnce')
+            workspaceVolume genericEphemeralVolume(storageClassName: 'truenas-csi-rbd', requestsSize: '50Gi', accessModes: 'ReadWriteOnce')
             yaml """
 kind: Pod
 metadata:
