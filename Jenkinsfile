@@ -6,6 +6,7 @@ pipeline {
     agent {
         kubernetes {
             defaultContainer 'kaniko'
+            workspaceVolume persistentVolumeClaimWorkspaceVolume(claimName: 'jenkins-workspace', readOnly: false)
             yaml """
 kind: Pod
 metadata:
@@ -14,7 +15,7 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
-    imagePullPolicy: Always
+    imagePullPolicy: IfNotPresent
     command:
     - /busybox/cat
     envFrom:
