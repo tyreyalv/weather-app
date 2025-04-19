@@ -6,7 +6,7 @@ pipeline {
     agent {
         kubernetes {
             defaultContainer 'kaniko'
-            workspaceVolume dynamicPVC(accessModes: 'ReadWriteOnce', requestsSize: "50Gi")
+            workspaceVolume genericPVC(accessModes: 'ReadWriteOnce', requestsSize: "50Gi")
             yaml """
 kind: Pod
 metadata:
