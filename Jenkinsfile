@@ -6,6 +6,7 @@ pipeline {
     agent {
         kubernetes {
             defaultContainer 'kaniko'
+						workspaceVolume persistentVolumeClaimWorkspaceVolume(claimName: 'jenkins-workspace-rbd', readOnly: false)
             yaml """
 kind: Pod
 metadata:
