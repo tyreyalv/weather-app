@@ -6,7 +6,7 @@ pipeline {
     agent {
         kubernetes {
             defaultContainer 'kaniko'
-	    workspaceVolume persistentVolumeClaimWorkspaceVolume(claimName: 'jenkins-workspace-rbd', readOnly: false)
+	    workspaceVolume dynamicPVC(accessModes: 'ReadWriteOnce', requestsSize: "50Gi")
             yaml """
 kind: Pod
 metadata:
