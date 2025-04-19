@@ -6,7 +6,6 @@ pipeline {
     agent {
         kubernetes {
             defaultContainer 'kaniko'
-	    workspaceVolume dynamicPVC(accessModes: 'ReadWriteOnce', requestsSize: "50Gi")
             yaml """
 kind: Pod
 metadata:
@@ -15,7 +14,7 @@ spec:
   containers:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
     command:
     - /busybox/cat
     envFrom:
