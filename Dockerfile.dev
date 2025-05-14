@@ -12,11 +12,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     iputils-ping \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install dependencies
+# Copy both requirements files
+COPY requirements.txt .
 COPY requirements-dev.txt .
 
-# Install development tools and application dependencies
-RUN pip install --no-cache-dir -r requirements-dev.txt && \
+# Install dependencies from both files if needed
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements-dev.txt && \
     pip install --no-cache-dir \
     pytest \
     pytest-cov \
