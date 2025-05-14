@@ -1,0 +1,14 @@
+# Include all production dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.3.0
+pytest-cov>=4.1.0
+
+# Code quality
+black>=23.3.0
+flake8>=6.0.0
+mypy>=1.2.0
+
+# Development tools
+ipython>=8.12.0

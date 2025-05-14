@@ -1,4 +1,15 @@
-requests
-python-dotenv
-redis
-ray[client]
+# Core dependencies
+requests>=2.28.0
+python-dotenv>=1.0.0
+redis>=4.5.0
+ray[client]>=2.5.0
+
+# Reliability
+tenacity>=8.2.0  # For retry logic
+
+# Data handling
+pydantic>=2.0.0  # For data validation
+
+# Analytics (optional)
+pandas>=2.0.0  # For data analysis
+matplotlib>=3.7.0  # For chart generation

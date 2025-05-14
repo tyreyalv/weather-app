@@ -1,0 +1,33 @@
+# Development Dockerfile
+FROM python:3.12-slim-bookworm
+
+WORKDIR /app
+
+# Install development dependencies and utilities
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    nano \
+    procps \
+    iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+
+# Install development tools and application dependencies
+RUN pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir \
+    pytest \
+    pytest-cov \
+    ipython \
+    black \
+    flake8 \
+    mypy \
+    debugpy
+
+# We don't copy the application code here because we'll mount it as a volume
+# in the docker-compose file for active development
+
+# Keep the container running for development
+CMD ["tail", "-f", "/dev/null"]
